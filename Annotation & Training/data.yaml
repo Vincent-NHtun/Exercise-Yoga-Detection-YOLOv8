@@ -1,0 +1,5 @@
+train: /content/drive/MyDrive/KMUTT/AI/AnnotatedData2withNoPose/images/train
+val: /content/drive/MyDrive/KMUTT/AI/AnnotatedData2withNoPose/images/val
+nc: 5 # Number of classes (yoga poses)
+names: ["child", "easyseat", "tree", "triangle", "noPose"]
+kpt_shape: [17, 3] 
