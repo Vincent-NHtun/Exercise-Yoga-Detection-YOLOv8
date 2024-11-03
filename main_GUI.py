@@ -1,20 +1,16 @@
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk
 from PIL import Image, ImageTk
-import cv2
 from ultralytics import YOLO
-import threading
-from playsound import playsound
-import time
-from yoga_function import upload_video_yoga, start_detection_yoga, update_frame_yoga, stop_detection_yoga, update_frame_video, process_pose_detection, process_animal_detection, process_pose_detection, start_pose_timer, stop_pose_timer, update_timer_in_gui, reset_count_yoga
-from  workout_function import upload_video_workout, start_detection_workout, update_frame_workout, stop_detection_workout
+from yoga_function import upload_video_yoga, start_detection_yoga, update_frame_yoga, stop_detection_yoga, process_pose_detection, process_animal_detection, process_pose_detection, start_pose_timer, update_timer_in_gui, stop_pose_timer, reset_count_yoga
+from  workout_function import upload_video_workout, start_detection_workout, stop_detection_workout, update_frame_workout, reset_count_exercise
 
 class WorkoutTracker:
     def __init__(self, root):
         self.root = root
         self.root.title("Track Your Workout using YOLOv8")
         self.root.geometry("800x600")
-        self.default_image = ImageTk.PhotoImage(Image.open("./images/cover.jpg").resize((650, 400)))
+        self.default_image = ImageTk.PhotoImage(Image.open("./images/cover.jpg").resize((650, 420)))
         
         self.class_labels = {
                     0: "Child",
@@ -45,7 +41,7 @@ class WorkoutTracker:
         self.tab_control.add(self.yogaTab, text='Yoga Detection')
 
         self.tab_control.pack(expand=1, fill="both")
-        # self.pose_durations = {pose: 0 for pose in self.class_labels.values()}
+        self.pose_durations = {pose: 0 for pose in self.class_labels.values()}
 
         self.create_workOutTab()
         self.create_yogaTab()
@@ -55,21 +51,28 @@ class WorkoutTracker:
         self.detect_model = YOLO("yolov8s.pt", task='detect')
 
         self.cap = None
-        self.frame_count = 0
+        self.count = 0
+        self.stage = None
 
         # For Yoga
         self.upload_video_yoga = upload_video_yoga.__get__(self)
         self.start_detection_yoga = start_detection_yoga.__get__(self)
         self.update_frame_yoga = update_frame_yoga.__get__(self)
         self.stop_detection_yoga = stop_detection_yoga.__get__(self)
-        self.update_frame_video = update_frame_video.__get__(self)
         self.process_pose_detection = process_pose_detection.__get__(self)
         self.process_animal_detection = process_animal_detection.__get__(self)
         self.process_pose_detection = process_pose_detection.__get__(self)
         self.start_pose_timer = start_pose_timer.__get__(self)
-        self.stop_pose_timer = stop_pose_timer.__get__(self)
         self.update_timer_in_gui = update_timer_in_gui.__get__(self)
+        self.stop_pose_timer = stop_pose_timer.__get__(self)
         self.reset_count_yoga = reset_count_yoga.__get__(self)
+        
+        # For Workout
+        self.upload_video_workout = upload_video_workout.__get__(self)
+        self.start_detection_workout = start_detection_workout.__get__(self)
+        self.stop_detection_workout = stop_detection_workout.__get__(self)
+        self.update_frame_workout = update_frame_workout.__get__(self) 
+        self.reset_count_exercise = reset_count_exercise.__get__(self)   
         
     #------------------------WORKOUT SECTION------------------------  
     def create_workOutTab(self):
@@ -85,7 +88,7 @@ class WorkoutTracker:
         right_frame.pack(side=tk.LEFT, fill=tk.BOTH, padx=10, pady=10)
 
         #------------------------LEFT SIDE CONTENT------------------------
-        self.exercise_canvas = tk.Canvas(left_frame, width=650, height=400, bg="gray")
+        self.exercise_canvas = tk.Canvas(left_frame, width=650, height=420, bg="gray")
         self.exercise_canvas.pack(pady=10)
 
         self.exercise_canvas.create_image(0, 0, anchor=tk.NW, image=self.default_image)
@@ -134,16 +137,53 @@ class WorkoutTracker:
         self.alert_logo = alert_logo  # Keep a reference to avoid garbage collection
 
         self.animal_status_label = tk.Label(right_frame, text="", font=("Helvetica", 16, "bold"), fg="red", image=alert_logo, compound=tk.LEFT)
-        self.animal_status_label.grid(row=2, column=0, columnspan=4, pady=(10, 10))
+        self.animal_status_label.grid(row=2, column=0, columnspan=4, pady=(0, 0))
         self.animal_status_label.grid_remove()  # Hide initially
+        
+        #blank label
+        self.blank_label = tk.Label(right_frame, text="", font=("Helvetica", 16, "bold"), fg="red") 
+        self.blank_label.grid(row=3, column=0, columnspan=4, pady=(0, 0))
+        
+        # Define each row explicitly for each pose
+        self.exercise_labels = {}  # Dictionary to store the timer label for each pose
+
+        # Row for Push Up
+        labelPushUpName = tk.Label(right_frame, text="Push Up: ", font=("Helvetica", 14), fg="green")
+        labelPushUpCount = tk.Label(right_frame, text="0", font=("Helvetica", 14), fg="green")
+        labelPushUpName.grid(row=4, column=1, pady=(5, 5))
+        labelPushUpCount.grid(row=4, column=2, pady=(5, 5))
+
+        # Row for Curl Up
+        labelCurlUpName = tk.Label(right_frame, text="Curl Up: ", font=("Helvetica", 14), fg="green")
+        labelCurlUpCount = tk.Label(right_frame, text="0", font=("Helvetica", 14), fg="green")
+        labelCurlUpName.grid(row=5, column=1, pady=(5, 5))
+        labelCurlUpCount.grid(row=5, column=2, pady=(5, 5))
+
+        # Row for Jumpig Jack
+        labelJumpingJackName = tk.Label(right_frame, text="Jumping Jack: ", font=("Helvetica", 14), fg="green")
+        labelJumpingJackCount = tk.Label(right_frame, text="0", font=("Helvetica", 14), fg="green")
+        labelJumpingJackName.grid(row=6, column=1, pady=(5, 5))
+        labelJumpingJackCount.grid(row=6, column=2, pady=(5, 5))
+
+        # Row for Squat
+        labelSquatName = tk.Label(right_frame, text="Squat: ", font=("Helvetica", 14), fg="green")
+        labelSquatCount = tk.Label(right_frame, text="0", font=("Helvetica", 14), fg="green")
+        labelSquatName.grid(row=7, column=1, pady=(5, 5))
+        labelSquatCount.grid(row=7, column=2, pady=(5, 5))
+
+        # Store each labelTimer in the dictionary for updating later
+        self.exercise_labels["PushUp"] = labelPushUpCount
+        self.exercise_labels["CurlUp"] = labelCurlUpCount
+        self.exercise_labels["JumpingJack"] = labelJumpingJackCount
+        self.exercise_labels["Squat"] = labelSquatCount
 
         
         # Reset Button
-        reset_btn = tk.Button(right_frame, text="Reset", command=lambda:self.reset_count_yoga, 
+        reset_btn = tk.Button(right_frame, text="Reset", command=lambda:self.reset_count_exercise(), 
                             font=("Helvetica", 12), bg="white", foreground="red", 
                             relief="flat", 
                             bd=2)  
-        reset_btn.grid(row=4, column=0, columnspan=4, padx=10, pady=5)
+        reset_btn.grid(row=9, column=0, columnspan=4, padx=10, pady=5)
         
         
     #------------------------YOGA SECTION------------------------
@@ -160,7 +200,7 @@ class WorkoutTracker:
         right_frame.pack(side=tk.LEFT, fill=tk.BOTH, padx=20, pady=10)
 
         #------------------------LEFT SIDE CONTENT------------------------
-        self.yoga_canvas = tk.Canvas(left_frame, width=650, height=400, bg="gray")
+        self.yoga_canvas = tk.Canvas(left_frame, width=650, height=420, bg="gray")
         self.yoga_canvas.pack(pady=10)
 
         self.yoga_canvas.create_image(0, 0, anchor=tk.NW, image=self.default_image)

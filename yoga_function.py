@@ -1,5 +1,4 @@
 import cv2
-import threading
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import tkinter as tk
@@ -28,29 +27,6 @@ def start_detection_yoga(self, canvas):
     self.update_frame_yoga(canvas)  # Start updating frames on the canvas
 
 
-def update_frame_video(self, canvas):
-    if self.cap is not None:
-        ret, frame = self.cap.read()
-        if ret:
-            canvas_width = canvas.winfo_width()
-            canvas_height = canvas.winfo_height()
-            frame = cv2.resize(frame, (canvas_width, canvas_height))
-            # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-            
-            img = Image.fromarray(frame)
-            imgtk = ImageTk.PhotoImage(image=img)
-            
-            if canvas.winfo_exists():
-                canvas.create_image(0, 0, anchor="nw", image=imgtk)
-                canvas.image = imgtk
-                # Schedule the next frame update
-                self.root.after(15, lambda: self.update_frame_video(canvas))  # Adjust the frame rate as needed
-            else:
-                self.cap.release()  # Make sure to release the capture if the canvas no longer exists
-        else:
-            self.cap.release() 
-
 def process_animal_detection(self, frame, annotated_frame):
     # Resize frame for animal detection
     animal_frame = cv2.resize(frame, (650, 430))  # Adjust the size as needed for the model
@@ -72,30 +48,29 @@ def update_frame_yoga(self, canvas):
     if self.cap is not None:
         ret, frame = self.cap.read()
         if ret:
-            self.frame_count = (self.frame_count + 1) % 8
-            if self.frame_count == 0:
+            
 
-                # Process pose detection
-                annotated_frame = self.process_pose_detection(frame, canvas)
+            # Process pose detection
+            annotated_frame = self.process_pose_detection(frame, canvas)
                 
-                # Process animal detection and update label if animals are detected
-                animals_detected = self.process_animal_detection(frame, annotated_frame)
+            # Process animal detection and update label if animals are detected
+            animals_detected = self.process_animal_detection(frame, annotated_frame)
 
-                if animals_detected:
-                    self.animal_status_label.config(text="  Animal Detected !!!", font=("Helvetica", 16, "bold"), fg="red")
-                    self.animal_status_label.grid()  # Show the label
-                else:
-                    self.animal_status_label.grid_remove()                
+            if animals_detected:
+                self.animal_status_label.config(text="  Animal Detected !!!", font=("Helvetica", 16, "bold"), fg="red")
+                self.animal_status_label.grid()  # Show the label
+            else:
+                self.animal_status_label.grid_remove()                
                 
 
-                # Update GUI with processed frame
-                img = ImageTk.PhotoImage(image=Image.fromarray(cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)))
-                if canvas.winfo_exists():
-                    canvas.create_image(0, 0, anchor=tk.NW, image=img)
-                    canvas.image = img  # To prevent garbage collection
+            # Update GUI with processed frame
+            img = ImageTk.PhotoImage(image=Image.fromarray(cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)))
+            if canvas.winfo_exists():
+                canvas.create_image(0, 0, anchor=tk.NW, image=img)
+                canvas.image = img  # To prevent garbage collection
 
             # Schedule next frame update, adjust delay to 33 ms (about 30 FPS)
-            self.root.after(5, lambda: self.update_frame_yoga(canvas))
+            self.root.after(33, lambda: self.update_frame_yoga(canvas))
         else:
             # Release the capture if no frame is retrieved
             self.cap.release()
@@ -183,4 +158,4 @@ def reset_count_yoga(self):
 
     #manually reset the timers in the GUI
     for pose_name in self.pose_labels:
-        self.update_timer_in_gui(pose_name, "0:0:00")
+        self.update_timer_in_gui(pose_name, "00:00:00")
