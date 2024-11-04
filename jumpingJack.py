@@ -17,8 +17,8 @@ RIGHT_SHOULDER = 12
 LEFT_HIP = 23
 RIGHT_HIP = 24
 
-LEFT_WRIST = 15
-RIGHT_WRIST = 16
+LEFT_ELBOW = 13
+RIGHT_ELBOW = 14
 
 LEFT_KNEE = 25
 RIGHT_KNEE = 26
@@ -49,23 +49,24 @@ def jumpingJack(frame, count, stage):
         shoulder_left = [results.pose_landmarks.landmark[LEFT_SHOULDER].x, results.pose_landmarks.landmark[LEFT_SHOULDER].y]
         hip_right = [results.pose_landmarks.landmark[RIGHT_HIP].x, results.pose_landmarks.landmark[RIGHT_HIP].y]
         hip_left = [results.pose_landmarks.landmark[LEFT_HIP].x, results.pose_landmarks.landmark[LEFT_HIP].y]
-        wrist_right = [results.pose_landmarks.landmark[RIGHT_WRIST].x, results.pose_landmarks.landmark[RIGHT_WRIST].y]
-        wrist_left = [results.pose_landmarks.landmark[LEFT_WRIST].x, results.pose_landmarks.landmark[LEFT_WRIST].y]
+        elbow_right = [results.pose_landmarks.landmark[RIGHT_ELBOW].x, results.pose_landmarks.landmark[RIGHT_ELBOW].y]
+        elbow_left = [results.pose_landmarks.landmark[LEFT_ELBOW].x, results.pose_landmarks.landmark[LEFT_ELBOW].y]
         knee_right = [results.pose_landmarks.landmark[RIGHT_KNEE].x, results.pose_landmarks.landmark[RIGHT_KNEE].y]
         knee_left = [results.pose_landmarks.landmark[LEFT_KNEE].x, results.pose_landmarks.landmark[LEFT_KNEE].y]
 
         # Calculate angle
-        angle_left_hipshoulderwrist = calculate_angle(hip_left, shoulder_left, wrist_left)
-        angle_right_hipshoulderwrist = calculate_angle(hip_right, shoulder_right, wrist_right)
+        angle_left_hipshoulderelbow = calculate_angle(hip_left, shoulder_left, elbow_left)
+        angle_right_hipshoulderelbow = calculate_angle(hip_right, shoulder_right, elbow_right)
         
         angle_left_shoulderhipknee = calculate_angle(shoulder_left, hip_left, knee_left)
         angle_right_shoulderhipknee = calculate_angle(shoulder_right, hip_right, knee_right)
 
         # Counter Logic
-        if angle_left_hipshoulderwrist < 30 and angle_right_hipshoulderwrist < 30 and angle_left_shoulderhipknee > 160 and angle_right_shoulderhipknee > 160 :
-            stage = "Down"
-        if angle_left_hipshoulderwrist > 140 and angle_right_hipshoulderwrist > 140 and angle_left_shoulderhipknee < 160 and angle_right_shoulderhipknee < 160 and stage == "Down":
-            count += 1
+        if angle_left_hipshoulderelbow < 90 and angle_right_hipshoulderelbow < 90 and angle_left_shoulderhipknee > 170 and angle_right_shoulderhipknee > 170 :
+            if stage == "Up":
+                stage = "Down"
+                count += 1
+        if angle_left_hipshoulderelbow > 90 and angle_right_hipshoulderelbow > 90 and angle_left_shoulderhipknee < 170 and angle_right_shoulderhipknee < 170 :
             stage = "Up"  
                 
             # print(count)
