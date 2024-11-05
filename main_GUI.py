@@ -3,7 +3,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 from ultralytics import YOLO
 from yoga_function import upload_video_yoga, start_detection_yoga, update_frame_yoga, stop_detection_yoga, process_pose_detection, process_animal_detection, process_pose_detection, start_pose_timer, update_timer_in_gui, stop_pose_timer, reset_count_yoga
-from  workout_function import upload_video_workout, start_detection_workout, stop_detection_workout, update_frame_workout, reset_count_exercise
+from  workout_func import upload_video_workout, start_detection_workout, stop_detection_workout, update_frame_workout, reset_count_exercise
 
 class WorkoutTracker:
     def __init__(self, root):
@@ -11,7 +11,12 @@ class WorkoutTracker:
         self.root.title("Track Your Workout using YOLOv8")
         self.root.geometry("800x600")
         self.default_image = ImageTk.PhotoImage(Image.open("./images/cover.jpg").resize((650, 420)))
-        
+        self.countPushUp = 0
+        self.countJJ = 0
+        self.countCurlUp = 0
+        self.stagePushUp = ""
+        self.stageJJ = ""
+        self.stageCurlUp = ""
         self.class_labels = {
                     0: "Child",
                     1: "Easy Seat",
