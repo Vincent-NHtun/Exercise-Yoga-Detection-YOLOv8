@@ -109,7 +109,7 @@ class WorkoutTracker:
                     font=("Helvetica", 12,"bold"), bg="white", foreground="darkblue")
         stop_btn.pack(side=tk.LEFT, padx=40)
 
-        upload_btn = tk.Button(left_frame, text="Upload Videos", command=lambda:self.upload_video_workout, font=("Helvetica", 12), width=15, height=1)
+        upload_btn = tk.Button(left_frame, text="Upload Videos", command=lambda:self.upload_video_workout(self.exercise_canvas), font=("Helvetica", 12), width=15, height=1)
         upload_btn.pack(pady=10)
         
         #------------------------RIGHT SIDE CONTENT------------------------
