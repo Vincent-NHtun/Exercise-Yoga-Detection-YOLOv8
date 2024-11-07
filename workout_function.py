@@ -4,7 +4,7 @@ import tkinter as tk
 from PIL import Image, ImageTk
 from curlUp import curlUp
 from jumpingJack import jumpingJack
-
+from squat import squat
 
 def upload_video_workout(self, canvas):
     # Upload a video and display it on the canvas
@@ -48,9 +48,13 @@ def update_frame_workout(self, canvas):
             # labelCurlUp = self.exercise_labels["CurlUp"]
             # labelCurlUp.config(text=self.count)
             
-            frame, self.count, self.stage = jumpingJack(frame, self.count, self.stage)
-            labelJumpingJack = self.exercise_labels["JumpingJack"]
-            labelJumpingJack.config(text=self.count)
+            # frame, self.count, self.stage = jumpingJack(frame, self.count, self.stage)
+            # labelJumpingJack = self.exercise_labels["JumpingJack"]
+            # labelJumpingJack.config(text=self.count)
+            
+            frame, self.count, self.stage = squat(frame, self.count, self.stage)
+            labelSquat = self.exercise_labels["Squat"]
+            labelSquat.config(text=self.count)
             
             frame = cv2.resize(frame, (canvas.winfo_width(), canvas.winfo_height()))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
