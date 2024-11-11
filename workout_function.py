@@ -2,8 +2,12 @@ import cv2
 from tkinter import filedialog, messagebox
 import tkinter as tk
 from PIL import Image, ImageTk
+from pushup import pushUp
 from curlUp import curlUp
 from jumpingJack import jumpingJack
+import cv2
+import mediapipe as mp
+import numpy as np
 
 
 def upload_video_workout(self, canvas):
@@ -16,7 +20,7 @@ def upload_video_workout(self, canvas):
             messagebox.showerror("Error", "Could not open video file.")
             return
 
-        self.update_frame_workout(canvas)  # Start updating frames on the canvas
+        self.update_frame_workout(canvas, "None")  # Start updating frames on the canvas
 
 def stop_detection_workout(self, canvas=None):
         # Stop the frame update thread 
@@ -38,31 +42,39 @@ def start_detection_workout(self, canvas):
         messagebox.showerror("Error", "Could not open video device.")
         return
     
-    self.update_frame_workout(canvas)
-
-def update_frame_workout(self, canvas):
+    self.update_frame_workout(canvas, "None")
+    
+mpDraw = mp.solutions.drawing_utils
+mpPose = mp.solutions.pose
+pose = mpPose.Pose()
+        
+def update_frame_workout(self, canvas, exerciseType):
     if self.cap:
         ret, frame = self.cap.read()
         if ret:
-            # frame, self.count, self.stage = curlUp(frame, self.count, self.stage)
-            # labelCurlUp = self.exercise_labels["CurlUp"]
-            # labelCurlUp.config(text=self.count)
-            
-            frame, self.count, self.stage = jumpingJack(frame, self.count, self.stage)
-            labelJumpingJack = self.exercise_labels["JumpingJack"]
-            labelJumpingJack.config(text=self.count)
-            
+            imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = pose.process(imgRGB)
+            mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
+
+            if exerciseType == "Push Up":
+                frame, self.count, self.stage = pushUp(frame, results, self.count, self.stage)
+                self.exercise_labels["PushUp"].config(text=self.count)
+            elif exerciseType == "Curl Up":
+                frame, self.count, self.stage = curlUp(frame, results, self.count, self.stage)
+                self.exercise_labels["CurlUp"].config(text=self.count)
+            elif exerciseType == "Jumping Jack":
+                frame, self.count, self.stage = jumpingJack(frame, results, self.count, self.stage)
+                self.exercise_labels["JumpingJack"].config(text=self.count)
+
             frame = cv2.resize(frame, (canvas.winfo_width(), canvas.winfo_height()))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(frame)
-            img_tk = ImageTk.PhotoImage(image=img)
-                
+            img_tk = ImageTk.PhotoImage(image=Image.fromarray(frame))
             canvas.create_image(0, 0, anchor=tk.NW, image=img_tk)
-            canvas.image = img_tk  # Avoid garbage collection
-                
-            self.root.after(33, lambda: self.update_frame_workout(canvas))
+            canvas.image = img_tk
+            self.root.after(33, lambda: self.update_frame_workout(canvas, exerciseType))
         else:
-            self.cap.release() 
+            self.cap.release()
+
             
 def reset_count_exercise(self):
     self.count = 0

@@ -53,7 +53,8 @@ class WorkoutTracker:
         self.cap = None
         self.count = 0
         self.stage = None
-
+        self.selected_button = None
+        
         # For Yoga
         self.upload_video_yoga = upload_video_yoga.__get__(self)
         self.start_detection_yoga = start_detection_yoga.__get__(self)
@@ -123,12 +124,11 @@ class WorkoutTracker:
             "Squat": ImageTk.PhotoImage(Image.open("./images/squat.jpg").resize((130, 130)))
         }
 
-        self.pose_buttons = {}
         col = 0
         for pose_name, img in self.exercise_images.items():
-            btn = tk.Label(right_frame, text=pose_name, image=img, compound=tk.TOP, font=("Helvetica", 12))
+            btn = tk.Button(right_frame, text=pose_name, image=img, compound=tk.TOP, font=("Helvetica", 12))
+            btn.config(command=lambda button=btn, name=pose_name: self.select_exercise(button, name))
             btn.grid(row=1, column=col, padx=10, pady=5)
-            self.pose_buttons[pose_name] = btn
             col += 1
             
         # Alert Animal Detection
@@ -184,7 +184,21 @@ class WorkoutTracker:
                             relief="flat", 
                             bd=2)  
         reset_btn.grid(row=9, column=0, columnspan=4, padx=10, pady=5)
-        
+    
+    # def select_button(self, name):
+    #     if self.current_selected:
+    #         self.buttons[self.current_selected].config(bg='SystemButtonFace')
+    #     self.buttons[name].config(bg='lightgreen')
+    #     self.current_selected = name  
+    #     update_frame_workout(self, self.exercise_canvas, name)
+    
+    def select_exercise(self, button, name):
+        if self.selected_button:
+            self.selected_button.config(bg='SystemButtonFace')  # Reset the previous button's background color
+        self.selected_button = button  # Access the button directly from the stored references
+        self.selected_button.config(bg='lightgreen')  # Change the background color of the selected button
+        # print(f"Selected Exercise: {name}")  # 
+        update_frame_workout(self, self.exercise_canvas, name)
         
     #------------------------YOGA SECTION------------------------
     def create_yogaTab(self):
