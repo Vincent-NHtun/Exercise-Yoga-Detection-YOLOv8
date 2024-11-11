@@ -1,14 +1,16 @@
+import cv2
+import mediapipe as mp
 import numpy as np
 
-# mpDraw = mp.solutions.drawing_utils
-# mpPose = mp.solutions.pose
-# pose = mpPose.Pose()
+mpDraw = mp.solutions.drawing_utils
+mpPose = mp.solutions.pose
+pose = mpPose.Pose()
 
-# cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0)
 count = 0
 stage = None
 
-# Landmark indicess
+# Landmark indices
 LEFT_SHOULDER = 11
 RIGHT_SHOULDER = 12
 
@@ -42,12 +44,12 @@ def calculate_angle(a, b, c):
 
     return angle    
 
-def pushUp(frame, results, count, stage):
-    # imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    # results = pose.process(imgRGB)
+def pushUp(frame, count, stage):
+    imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = pose.process(imgRGB)
 
     if results.pose_landmarks:
-        # mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
+        mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
         nose = [results.pose_landmarks.landmark[0].x, results.pose_landmarks.landmark[0].y]
         shoulder_right = [results.pose_landmarks.landmark[RIGHT_SHOULDER].x, results.pose_landmarks.landmark[RIGHT_SHOULDER].y]
         shoulder_left = [results.pose_landmarks.landmark[LEFT_SHOULDER].x, results.pose_landmarks.landmark[LEFT_SHOULDER].y]
@@ -55,6 +57,12 @@ def pushUp(frame, results, count, stage):
         elbow_right = [results.pose_landmarks.landmark[RIGHT_ELBOW].x, results.pose_landmarks.landmark[RIGHT_ELBOW].y]
         wrist_left = [results.pose_landmarks.landmark[LEFT_WRIST].x, results.pose_landmarks.landmark[LEFT_WRIST].y]
         wrist_right = [results.pose_landmarks.landmark[RIGHT_WRIST].x, results.pose_landmarks.landmark[RIGHT_WRIST].y]
+        hip_right = [results.pose_landmarks.landmark[RIGHT_HIP].x, results.pose_landmarks.landmark[RIGHT_HIP].y]
+        hip_left = [results.pose_landmarks.landmark[LEFT_HIP].x, results.pose_landmarks.landmark[LEFT_HIP].y]
+        knee_right = [results.pose_landmarks.landmark[RIGHT_KNEE].x, results.pose_landmarks.landmark[RIGHT_KNEE].y]
+        knee_left = [results.pose_landmarks.landmark[LEFT_KNEE].x, results.pose_landmarks.landmark[LEFT_KNEE].y]
+        ankel_right = [results.pose_landmarks.landmark[RIGHT_ANKLE].x, results.pose_landmarks.landmark[RIGHT_ANKLE].y]
+        ankel_left = [results.pose_landmarks.landmark[LEFT_ANKLE].x, results.pose_landmarks.landmark[LEFT_ANKLE].y]
 
         #calculating angles
         left_arm_angle = calculate_angle(shoulder_left, elbow_left, wrist_left)
@@ -69,7 +77,7 @@ def pushUp(frame, results, count, stage):
         else:
             if (avg_arm_angle > 160) & (nose[1] < avg_elbow_y):
                 stage = True
-    return frame,results,count,stage
+    return frame,count,stage
 
         
 

@@ -1,10 +1,12 @@
+import cv2
+import mediapipe as mp
 import numpy as np
 
-# mpDraw = mp.solutions.drawing_utils
-# mpPose = mp.solutions.pose
-# pose = mpPose.Pose()
+mpDraw = mp.solutions.drawing_utils
+mpPose = mp.solutions.pose
+pose = mpPose.Pose()
 
-# cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0)
 count = 0
 stage = None
 
@@ -34,12 +36,12 @@ def calculate_angle(a, b, c):
 
     return angle    
 
-def curlUp(frame, results, count, stage):
-    # imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    # results = pose.process(imgRGB)
+def curlUp(frame, count, stage):
+    imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = pose.process(imgRGB)
 
     if results.pose_landmarks:
-        # mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
+        mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
         shoulder_right = [results.pose_landmarks.landmark[RIGHT_SHOULDER].x, results.pose_landmarks.landmark[RIGHT_SHOULDER].y]
         shoulder_left = [results.pose_landmarks.landmark[LEFT_SHOULDER].x, results.pose_landmarks.landmark[LEFT_SHOULDER].y]
         hip_right = [results.pose_landmarks.landmark[RIGHT_HIP].x, results.pose_landmarks.landmark[RIGHT_HIP].y]
@@ -66,5 +68,5 @@ def curlUp(frame, results, count, stage):
             # print(count)
             # cv2.putText(frame, f'Sit-ups: {count}', (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3, cv2.LINE_AA)
 
-    return frame, results, count, stage
+    return frame, count, stage
 
