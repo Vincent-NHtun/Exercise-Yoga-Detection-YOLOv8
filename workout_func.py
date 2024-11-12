@@ -216,7 +216,7 @@ def handle_pose_click(self, pose_name):
                     self.exercise_labels["JumpingJack"].config(text=self.countJJ)
                     self.stageJJ = "Up"
 
-            self.root.after(33, lambda: self.handle_pose_click(pose_name))
+        self.root.after(33, lambda: self.handle_pose_click(pose_name))
 
 def reset_count_exercise(self):
     self.countJJ = 0
