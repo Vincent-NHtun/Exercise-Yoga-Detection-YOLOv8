@@ -9,7 +9,7 @@ class WorkoutTracker:
     def __init__(self, root):
         self.root = root
         self.root.title("Track Your Workout using YOLOv8")
-        self.root.geometry("800x600")
+        self.root.geometry("1300x650")
         self.default_image = ImageTk.PhotoImage(Image.open("./images/cover.jpg").resize((650, 420)))
         
         self.current_pose = ""
@@ -78,6 +78,7 @@ class WorkoutTracker:
         self.cap = None
         self.count = 0
         self.stage = None
+        self.selected_button = None
 
         # For Yoga
         self.upload_video_yoga = upload_video_yoga.__get__(self)
@@ -155,10 +156,11 @@ class WorkoutTracker:
         self.pose_buttons = {}
         col = 0
         for pose_name, img in self.exercise_images.items():
-            btn = tk.Button(right_frame, text=pose_name, image=img, compound=tk.TOP, font=("Helvetica", 12),
-                    command=lambda pose=pose_name: self.start_recursive_pose_click(pose))
+            btn = tk.Button(right_frame, text=pose_name, image=img, compound=tk.TOP, font=("Helvetica", 12))
             btn.grid(row=1, column=col, padx=10, pady=5)
             self.pose_buttons[pose_name] = btn
+            
+            btn.config(command=lambda btn=btn, pose=pose_name: self.button_click(btn, pose))
             col += 1
 
         # Alert Animal Detection
@@ -215,7 +217,14 @@ class WorkoutTracker:
                             bd=2)  
         reset_btn.grid(row=9, column=0, columnspan=4, padx=10, pady=5)
         
-        
+    def button_click(self, btn, pose_name):
+        if self.selected_button:
+            self.selected_button.config(bg='SystemButtonFace')  
+        btn.config(bg='lightgreen')  
+        self.selected_button = btn  
+
+        self.start_recursive_pose_click(pose_name)
+            
     #------------------------YOGA SECTION------------------------
     def create_yogaTab(self):
         title_label = tk.Label(self.yogaTab, text="Track Your Yoga Poses using YOLOv8", font=("Helvetica", 18, "bold"))

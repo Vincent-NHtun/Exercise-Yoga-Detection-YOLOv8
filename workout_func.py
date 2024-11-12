@@ -28,15 +28,6 @@ RIGHT_KNEE = 26
 LEFT_ANKLE = 27
 RIGHT_ANKLE = 28
 
-#variables
-# stageJJ = ""
-# count_JJ = 0
-# stagePushUp = ""
-# count_PushUp = 0
-# stageCurlUp = ""
-# count_CurlUp = 0
-# exercise = ""
-
 def upload_video_workout(self, canvas):
     # Upload a video and display it on the canvas
     video_path = filedialog.askopenfilename(filetypes=[("Video files", "*.mp4 *.avi *.mov")])
@@ -64,7 +55,9 @@ def stop_detection_workout(self, canvas=None):
             canvas.image = self.default_image
             
         self.detection_started = False
-
+        self.selected_button.config(bg="SystemButtonFace")
+        self.selected_button = None
+    
 def start_detection_workout(self, canvas):
     self.cap = cv2.VideoCapture(0)  # Open the default camera
     if not self.cap.isOpened():
@@ -72,6 +65,8 @@ def start_detection_workout(self, canvas):
         return
     self.detection_started = True 
     self.update_frame_workout(canvas)
+    self.selected_button.config(bg="SystemButtonFace")
+    self.selected_button = None
     
 def calculate_angle(a, b, c):
     a = np.array(a)  
@@ -105,6 +100,8 @@ def update_frame_workout(self, canvas):
             #CurlUp
                 ankle_right = [results.pose_landmarks.landmark[RIGHT_ANKLE].x, results.pose_landmarks.landmark[RIGHT_ANKLE].y]
                 ankle_left = [results.pose_landmarks.landmark[LEFT_ANKLE].x, results.pose_landmarks.landmark[LEFT_ANKLE].y]
+                self.ankleRightX = results.pose_landmarks.landmark[RIGHT_ANKLE].x
+                self.ankleLeftX = results.pose_landmarks.landmark[LEFT_ANKLE].x
             #PushUp
                 self.nose = [results.pose_landmarks.landmark[NOSE].x, results.pose_landmarks.landmark[NOSE].y]
                 self.mouth_left = [results.pose_landmarks.landmark[LEFT_MOUTH].x, results.pose_landmarks.landmark[LEFT_MOUTH].y]
@@ -155,9 +152,9 @@ def update_frame_workout(self, canvas):
 
 def start_recursive_pose_click(self, pose_name):
     if not self.detection_started:
-        print("Detection or video upload has not started yet.")
+        print("Open the LIVE video feed or upload video to start detection.")
         return
-    if self.current_pose is not "":
+    if self.current_pose != "":
         self.stop_recursive_pose_click()
     self.current_pose = pose_name
     self.recursive_call = True
@@ -169,7 +166,7 @@ def stop_recursive_pose_click(self):
     
 def handle_pose_click(self, pose_name):
     if not self.detection_started:
-        print("Detection or video upload has not started yet.")
+        print("Open the LIVE video feed or upload video to start detection.")
         return
     # Handle the pose click event
     if self.recursive_call and self.current_pose == pose_name: # to break the recursion when the user clicks on another pose
@@ -178,13 +175,13 @@ def handle_pose_click(self, pose_name):
         
         #Squat
         if pose_name == "Squat":
-            print(f"countSquat: {self.countSquat}")
-            print(f"stageSquat: {self.stageSquat}")
-            print(f"avg_angle_hipkneeankle: {self.avg_angle_hipkneeankle}")
-            if self.avg_angle_hipkneeankle > 150:
+            # print(f"countSquat: {self.countSquat}")
+            # print(f"stageSquat: {self.stageSquat}")
+            # print(f"avg_angle_hipkneeankle: {self.avg_angle_hipkneeankle}")
+            if self.avg_angle_hipkneeankle > 150 and abs(self.ankleRightX - self.ankleLeftX) > 0.1:
                 if self.stageSquat != "Up":
                     self.stageSquat = "Up"
-            if (self.avg_angle_hipkneeankle < 150 and self.avg_angle_hipkneeankle > 45):
+            if (self.avg_angle_hipkneeankle < 150 and self.avg_angle_hipkneeankle > 45) and abs(self.ankleRightX - self.ankleLeftX) > 0.1:
                 if self.stageSquat == "Up":
                     self.countSquat += 1
                     self.exercise_labels["Squat"].config(text=self.countSquat)
@@ -192,10 +189,10 @@ def handle_pose_click(self, pose_name):
                     
         #CurlUp
         if pose_name == "Curl Up":
-            print(f"stageCurlUp: {self.stageCurlUp}")
-            print(f"countCurlUp: {self.countCurlUp}")
-            print(f"avg_angle_hipkneeankle: {self.avg_angle_hipkneeankle}")
-            print(f"avg_angle_shoulderhipknee: {self.avg_angle_shoulderhipknee}")
+            # print(f"stageCurlUp: {self.stageCurlUp}")
+            # print(f"countCurlUp: {self.countCurlUp}")
+            # print(f"avg_angle_hipkneeankle: {self.avg_angle_hipkneeankle}")
+            # print(f"avg_angle_shoulderhipknee: {self.avg_angle_shoulderhipknee}")
             if (self.avg_angle_hipkneeankle > 30) and (self.avg_angle_hipkneeankle < 100):
                 if (self.avg_angle_shoulderhipknee > 100) :
                         self.stageCurlUp = "Down"
@@ -205,23 +202,23 @@ def handle_pose_click(self, pose_name):
                     self.exercise_labels["CurlUp"].config(text=self.countCurlUp)
         #PushUp   
         if pose_name == "Push Up":
-            print(f"stagePushUp: {self.stagePushUp}")
-            print(f"countPushUp: {self.countPushUp}")
-            print(f"avg_angle_shoulderelbowwrist: {self.avg_angle_shoulderelbowwrist}")
-            print(f"avg_elbow_y: {self.avg_elbow_y}")
-            if self.avg_angle_shoulderelbowwrist < 70 and ( self.nose[1] > self.avg_elbow_y or self.nose[1] > self.mouthleft[1] or self.nose[1] > self.mouthright[1]): 
+            # print(f"stagePushUp: {self.stagePushUp}")
+            # print(f"countPushUp: {self.countPushUp}")
+            # print(f"avg_angle_shoulderelbowwrist: {self.avg_angle_shoulderelbowwrist}")
+            # print(f"avg_elbow_y: {self.avg_elbow_y}")
+            if self.avg_angle_shoulderelbowwrist < 70 and ( self.nose[1] > self.avg_elbow_y or self.nose[1] > self.mouth_left[1] or self.nose[1] > self.mouth_left[1]): 
                 self.stagePushUp = "Down"
-            if self.avg_angle_shoulderelbowwrist > 160 and ( self.nose[1] < self.avg_elbow_y or self.nose[1] < self.mouthleft[1] or self.nose[1] < self.mouthright[1]):
+            if self.avg_angle_shoulderelbowwrist > 160 and ( self.nose[1] < self.avg_elbow_y or self.nose[1] < self.mouth_right[1] or self.nose[1] < self.mouth_right[1]):
                 if self.stagePushUp == "Down":
                     self.countPushUp += 1
                     self.stagePushUp = "Up"
                     self.exercise_labels["PushUp"].config(text=self.countPushUp)
         #JJ
         if pose_name == "Jumping Jack":
-            print(f"stageJJ: {self.stageJJ}")
-            print(f"countJJ: {self.countJJ}")
-            print(f"avg_angle_hipshoulderelbow: {self.avg_angle_hipshoulderelbow}")
-            print(f"avg_angle_shoulderhipknee: {self.avg_angle_shoulderhipknee}")
+            # print(f"stageJJ: {self.stageJJ}")
+            # print(f"countJJ: {self.countJJ}")
+            # print(f"avg_angle_hipshoulderelbow: {self.avg_angle_hipshoulderelbow}")
+            # print(f"avg_angle_shoulderhipknee: {self.avg_angle_shoulderhipknee}")
             if self.avg_angle_hipshoulderelbow < 90 and self.avg_angle_shoulderhipknee > 170:
                 self.stageJJ = "Down"
             if self.avg_angle_hipshoulderelbow > 90 and self.avg_angle_shoulderhipknee < 170 and (self.nose[1] > self.wrist_left[1] or self.nose[1] > self.wrist_right[1]):
