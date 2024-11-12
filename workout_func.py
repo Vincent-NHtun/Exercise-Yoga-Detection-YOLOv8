@@ -34,6 +34,7 @@ RIGHT_ANKLE = 28
 # count_PushUp = 0
 # stageCurlUp = ""
 # count_CurlUp = 0
+# exercise = ""
 
 def upload_video_workout(self, canvas):
     # Upload a video and display it on the canvas
@@ -44,7 +45,7 @@ def upload_video_workout(self, canvas):
         if not self.cap.isOpened():
             messagebox.showerror("Error", "Could not open video file.")
             return
-
+        self.detection_started = True
         self.update_frame_workout(canvas)  # Start updating frames on the canvas
 
 def stop_detection_workout(self, canvas=None):
@@ -60,13 +61,15 @@ def stop_detection_workout(self, canvas=None):
         if canvas:
             canvas.create_image(0, 0, anchor=tk.NW, image=self.default_image)
             canvas.image = self.default_image
+            
+        self.detection_started = False
 
 def start_detection_workout(self, canvas):
     self.cap = cv2.VideoCapture(0)  # Open the default camera
     if not self.cap.isOpened():
         messagebox.showerror("Error", "Could not open video device.")
         return
-    
+    self.detection_started = True 
     self.update_frame_workout(canvas)
     
 def calculate_angle(a, b, c):
@@ -96,13 +99,16 @@ def update_frame_workout(self, canvas):
             
             if results.pose_landmarks:
                 mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
+            
             # Get Coordinates
             #CurlUp
+                ankle_right = [results.pose_landmarks.landmark[RIGHT_ANKLE].x, results.pose_landmarks.landmark[RIGHT_ANKLE].y]
+                ankle_left = [results.pose_landmarks.landmark[LEFT_ANKLE].x, results.pose_landmarks.landmark[LEFT_ANKLE].y]
             #PushUp
-                nose = [results.pose_landmarks.landmark[NOSE].x, results.pose_landmarks.landmark[NOSE].y]
+                self.nose = [results.pose_landmarks.landmark[NOSE].x, results.pose_landmarks.landmark[NOSE].y]
                 wrist_left = [results.pose_landmarks.landmark[LEFT_WRIST].x, results.pose_landmarks.landmark[LEFT_WRIST].y]
                 wrist_right = [results.pose_landmarks.landmark[RIGHT_WRIST].x, results.pose_landmarks.landmark[RIGHT_WRIST].y]
-                #JJ
+            #JJ
                 shoulder_right = [results.pose_landmarks.landmark[RIGHT_SHOULDER].x, results.pose_landmarks.landmark[RIGHT_SHOULDER].y]
                 shoulder_left = [results.pose_landmarks.landmark[LEFT_SHOULDER].x, results.pose_landmarks.landmark[LEFT_SHOULDER].y]
                 hip_right = [results.pose_landmarks.landmark[RIGHT_HIP].x, results.pose_landmarks.landmark[RIGHT_HIP].y]
@@ -111,41 +117,29 @@ def update_frame_workout(self, canvas):
                 elbow_left = [results.pose_landmarks.landmark[LEFT_ELBOW].x, results.pose_landmarks.landmark[LEFT_ELBOW].y]
                 knee_right = [results.pose_landmarks.landmark[RIGHT_KNEE].x, results.pose_landmarks.landmark[RIGHT_KNEE].y]
                 knee_left = [results.pose_landmarks.landmark[LEFT_KNEE].x, results.pose_landmarks.landmark[LEFT_KNEE].y]
-                
-                # Calculate angle
-                #PushUp
+            
+            # Calculate angle
+            #CurlUp
+                angle_l_hipkneeankle = calculate_angle(hip_left, knee_left, ankle_left)
+                angle_r_hipkneeankle = calculate_angle(hip_right, knee_right, ankle_right)
+                self.avg_angle_hipkneeankle = (angle_l_hipkneeankle + angle_r_hipkneeankle) / 2
+            #PushUp
                 angle_l_shoulderelbowwrist = calculate_angle(shoulder_left, elbow_left, wrist_left)
                 angle_r_shoulderelbowwrist = calculate_angle(shoulder_right, elbow_right, wrist_right)
-                avg_angle_shoulderelbowwrist = (angle_l_shoulderelbowwrist + angle_r_shoulderelbowwrist) / 2
-                avg_elbow_y = (elbow_left[1] + elbow_right[1]) / 2
-                #JJ
-                angle_l_hipshoulderelbow = calculate_angle(hip_left, shoulder_left, elbow_left)
-                angle_r_hipshoulderelbow = calculate_angle(hip_right, shoulder_right, elbow_right)
-                avg_angle_hipshoulderelbow = (angle_l_hipshoulderelbow + angle_r_hipshoulderelbow) / 2
+                self.avg_angle_shoulderelbowwrist = (angle_l_shoulderelbowwrist + angle_r_shoulderelbowwrist) / 2
+                self.avg_elbow_y = (elbow_left[1] + elbow_right[1]) / 2
+                angle_l_wristshoulderknee = calculate_angle(wrist_left, shoulder_left, knee_left)
+                angle_r_wristshoulderknee = calculate_angle(wrist_right, shoulder_right, knee_right)
+                avg_angle_wristshoulderknee = (angle_l_wristshoulderknee + angle_r_wristshoulderknee) / 2
+            #JJ
+                angle_l_hipshoulderelbow = calculate_angle(elbow_left, shoulder_left, hip_left)
+                angle_r_hipshoulderelbow = calculate_angle(elbow_right, shoulder_right, hip_right)
+                self.avg_angle_hipshoulderelbow = (angle_l_hipshoulderelbow + angle_r_hipshoulderelbow) / 2
                 
                 angle_l_shoulderhipknee = calculate_angle(shoulder_left, hip_left, knee_left)
                 angle_r_shoulderhipknee = calculate_angle(shoulder_right, hip_right, knee_right)
-                avg_angle_shoulderhipknee = (angle_l_shoulderhipknee + angle_r_shoulderhipknee) / 2
-                
-                # Counter Logic
-                #PushUp
-                if avg_angle_shoulderelbowwrist < 70 and nose[1] > avg_elbow_y: 
-                    if self.stagePushUp == "Up":
-                        self.countPushUp += 1
-                        self.stagePushUp = "Down"
-                        update_count_exercise(self, "PushUp", self.countPushUp)
-                if avg_angle_shoulderelbowwrist > 160 and nose[1] < avg_elbow_y:
-                    self.stagePushUp = "Up"
-                #JJ
-                if avg_angle_hipshoulderelbow < 90 and avg_angle_shoulderhipknee > 170:
-                    self.stageJJ = "Down"
- 
-                if avg_angle_hipshoulderelbow > 90 and avg_angle_shoulderhipknee < 170 and nose[1] > avg_elbow_y :
-                    if self.stageJJ == "Down":
-                        self.countJJ += 1
-                        self.stageJJ = "Up"
-                        update_count_exercise(self, "JumpingJack", self.countJJ)
-            
+                self.avg_angle_shoulderhipknee = (angle_l_shoulderhipknee + angle_r_shoulderhipknee) / 2
+
             frame = cv2.resize(frame, (canvas.winfo_width(), canvas.winfo_height()))
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             img = Image.fromarray(frame)
@@ -157,17 +151,80 @@ def update_frame_workout(self, canvas):
             self.root.after(33, lambda: self.update_frame_workout(canvas))
         else:
             self.cap.release() 
-            
+
+def start_recursive_pose_click(self, pose_name):
+    if not self.detection_started:
+        print("Detection or video upload has not started yet.")
+        return
+    if self.current_pose is not "":
+        self.stop_recursive_pose_click()
+    self.current_pose = pose_name
+    self.recursive_call = True
+    self.handle_pose_click(pose_name)
+    
+def stop_recursive_pose_click(self):
+    self.recursive_call = False
+    self.current_pose = ""
+    
+def handle_pose_click(self, pose_name):
+    if not self.detection_started:
+        print("Detection or video upload has not started yet.")
+        return
+    # Handle the pose click event
+    if self.recursive_call: # to break the recursion when the user clicks on another pose
+        
+        print(f"Pose clicked: {pose_name}")
+        
+        #CurlUp
+        #CurlUp
+        if pose_name == "Curl Up":
+            print(f"stageCurlUp: {self.stageCurlUp}")
+            print(f"countCurlUp: {self.countCurlUp}")
+            print(f"avg_angle_hipkneeankle: {self.avg_angle_hipkneeankle}")
+            print(f"avg_angle_shoulderhipknee: {self.avg_angle_shoulderhipknee}")
+            if (self.avg_angle_hipkneeankle > 40) and (self.avg_angle_hipkneeankle < 80):
+                if (self.avg_angle_shoulderhipknee > 110) :
+                        self.stageCurlUp = "Down"
+                if ((self.avg_angle_shoulderhipknee < 50 and self.stageCurlUp == "Down")):
+                    self.countCurlUp += 1
+                    self.stageCurlUp = "Up"
+                    self.exercise_labels["CurlUp"].config(text=self.countCurlUp)
+        #PushUp   
+        if pose_name == "Push Up":
+            print(f"stagePushUp: {self.stagePushUp}")
+            print(f"countPushUp: {self.countPushUp}")
+            print(f"avg_angle_shoulderelbowwrist: {self.avg_angle_shoulderelbowwrist}")
+            print(f"avg_elbow_y: {self.avg_elbow_y}")
+            if self.avg_angle_shoulderelbowwrist < 70 and self.nose[1] > self.avg_elbow_y: 
+                if self.stagePushUp == "Up":
+                    self.countPushUp += 1
+                    self.stagePushUP = "Down"
+                    self.exercise_labels["PushUp"].config(text=self.countPushUp)
+            if self.avg_angle_shoulderelbowwrist > 160 and self.nose[1] < self.avg_elbow_y:
+                self.stagePushUp = "Up"
+        #JJ
+        if pose_name == "Jumping Jack":
+            print(f"stageJJ: {self.stageJJ}")
+            print(f"countJJ: {self.countJJ}")
+            print(f"avg_angle_hipshoulderelbow: {self.avg_angle_hipshoulderelbow}")
+            print(f"avg_angle_shoulderhipknee: {self.avg_angle_shoulderhipknee}")
+            if self.avg_angle_hipshoulderelbow < 90 and self.avg_angle_shoulderhipknee > 170:
+                self.stageJJ = "Down"
+            if self.avg_angle_hipshoulderelbow > 90 and self.avg_angle_shoulderhipknee < 170 :
+                if self.stageJJ == "Down":
+                    self.countJJ += 1
+                    self.exercise_labels["JumpingJack"].config(text=self.countJJ)
+                    self.stageJJ = "Up"
+
+            self.root.after(33, lambda: self.handle_pose_click(pose_name))
+
 def reset_count_exercise(self):
     self.countJJ = 0
     self.countPushUp = 0
     self.countCurlUp = 0
+    self.countSquat = 0
     
     for label in self.exercise_labels:
         label = self.exercise_labels[label]
         label.config(text="0")
         
-        
-def update_count_exercise(self, exercise, count):
-    label = self.exercise_labels[exercise]
-    label.config(text=str(count))

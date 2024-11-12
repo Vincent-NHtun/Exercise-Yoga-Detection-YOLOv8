@@ -3,7 +3,7 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 from ultralytics import YOLO
 from yoga_function import upload_video_yoga, start_detection_yoga, update_frame_yoga, stop_detection_yoga, process_pose_detection, process_animal_detection, process_pose_detection, start_pose_timer, update_timer_in_gui, stop_pose_timer, reset_count_yoga
-from  workout_func import upload_video_workout, start_detection_workout, stop_detection_workout, update_frame_workout, reset_count_exercise
+from  workout_func import upload_video_workout, start_detection_workout, stop_detection_workout, update_frame_workout, reset_count_exercise, start_recursive_pose_click, handle_pose_click, stop_recursive_pose_click
 
 class WorkoutTracker:
     def __init__(self, root):
@@ -11,12 +11,27 @@ class WorkoutTracker:
         self.root.title("Track Your Workout using YOLOv8")
         self.root.geometry("800x600")
         self.default_image = ImageTk.PhotoImage(Image.open("./images/cover.jpg").resize((650, 420)))
+        
+        self.current_pose = ""
+        self.detection_started = False
+        self.recursive_call = False
+        
+        self.stageJJ = ""
+        self.stagePushUp = ""
+        self.stageCurlUp = ""
+        
         self.countPushUp = 0
         self.countJJ = 0
         self.countCurlUp = 0
-        self.stagePushUp = ""
-        self.stageJJ = ""
-        self.stageCurlUp = ""
+        self.countSquat = 0
+        
+        self.nose = 0
+        self.avg_angle_shoulderelbowwrist = 0
+        self.avg_elbow_y = 0
+        self.avg_angle_shoulderhipknee = 0
+        self.avg_angle_hipshoulderelbow = 0
+        self.avg_angle_hipkneeankle = 0
+        
         self.class_labels = {
                     0: "Child",
                     1: "Easy Seat",
@@ -77,7 +92,11 @@ class WorkoutTracker:
         self.start_detection_workout = start_detection_workout.__get__(self)
         self.stop_detection_workout = stop_detection_workout.__get__(self)
         self.update_frame_workout = update_frame_workout.__get__(self) 
-        self.reset_count_exercise = reset_count_exercise.__get__(self)   
+        self.reset_count_exercise = reset_count_exercise.__get__(self) 
+        self.start_recursive_pose_click = start_recursive_pose_click.__get__(self)
+        self.stop_recursive_pose_click = stop_recursive_pose_click.__get__(self)
+        self.handle_pose_click = handle_pose_click.__get__(self)
+
         
     #------------------------WORKOUT SECTION------------------------  
     def create_workOutTab(self):
@@ -131,11 +150,12 @@ class WorkoutTracker:
         self.pose_buttons = {}
         col = 0
         for pose_name, img in self.exercise_images.items():
-            btn = tk.Label(right_frame, text=pose_name, image=img, compound=tk.TOP, font=("Helvetica", 12))
+            btn = tk.Button(right_frame, text=pose_name, image=img, compound=tk.TOP, font=("Helvetica", 12),
+                    command=lambda pose=pose_name: self.start_recursive_pose_click(pose))
             btn.grid(row=1, column=col, padx=10, pady=5)
             self.pose_buttons[pose_name] = btn
             col += 1
-            
+
         # Alert Animal Detection
         alert_image = Image.open("./images/alert.png").resize((30, 30))  # Assuming you have an alert.jpg image
         alert_logo = ImageTk.PhotoImage(alert_image)
