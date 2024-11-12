@@ -23,9 +23,17 @@ class WorkoutTracker:
                     15: "cat",
                     16: "dog"
                 }
+        
+        self.exercise_states = {
+            "Push Up": {"count": 0, "stage": None},
+            "Curl Up": {"count": 0, "stage": None},
+            "Jumping Jack": {"count": 0, "stage": None},
+            "Squat": {"count": 0, "stage": None}
+        }
+        
         self.pose_start_time = {}  # To store the start time of each detected pose
         # self.pose_durations = {pose: 0 for pose in self.class_labels.values()}  # To store cumulative time of each pose
-        self.exercise_count = {"Push Up": 0, "Curl Up": 0, "Jumping Jack": 0, "Squat": 0}
+        # self.exercise_count = {"Push Up": 0, "Curl Up": 0, "Jumping Jack": 0, "Squat": 0}
 
         self.style = ttk.Style()
         self.style.configure('TNotebook.Tab', padding=[50, 5], font=('Helvetica', 12))
@@ -110,7 +118,7 @@ class WorkoutTracker:
                     font=("Helvetica", 12,"bold"), bg="white", foreground="darkblue")
         stop_btn.pack(side=tk.LEFT, padx=40)
 
-        upload_btn = tk.Button(left_frame, text="Upload Videos", command=lambda:self.upload_video_workout, font=("Helvetica", 12), width=15, height=1)
+        upload_btn = tk.Button(left_frame, text="Upload Videos", command=lambda:self.upload_video_workout(self.exercise_canvas), font=("Helvetica", 12), width=15, height=1)
         upload_btn.pack(pady=10)
         
         #------------------------RIGHT SIDE CONTENT------------------------
@@ -185,19 +193,12 @@ class WorkoutTracker:
                             bd=2)  
         reset_btn.grid(row=9, column=0, columnspan=4, padx=10, pady=5)
     
-    # def select_button(self, name):
-    #     if self.current_selected:
-    #         self.buttons[self.current_selected].config(bg='SystemButtonFace')
-    #     self.buttons[name].config(bg='lightgreen')
-    #     self.current_selected = name  
-    #     update_frame_workout(self, self.exercise_canvas, name)
-    
     def select_exercise(self, button, name):
         if self.selected_button:
             self.selected_button.config(bg='SystemButtonFace')  # Reset the previous button's background color
         self.selected_button = button  # Access the button directly from the stored references
         self.selected_button.config(bg='lightgreen')  # Change the background color of the selected button
-        # print(f"Selected Exercise: {name}")  # 
+        print(f"Selected Exercise: {name}")  # 
         update_frame_workout(self, self.exercise_canvas, name)
         
     #------------------------YOGA SECTION------------------------

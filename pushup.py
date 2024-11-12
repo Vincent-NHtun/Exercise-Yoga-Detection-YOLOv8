@@ -1,5 +1,5 @@
 import cv2
-# import mediapipe as mp
+import mediapipe as mp
 import numpy as np
 
 # mpDraw = mp.solutions.drawing_utils
@@ -44,7 +44,7 @@ def calculate_angle(a, b, c):
 
     return angle    
 
-def pushUp(frame, results, count, stage):
+def pushup(frame, results, count, stage):
     print("pushup")
     # imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     # results = pose.process(imgRGB)
@@ -78,9 +78,46 @@ def pushUp(frame, results, count, stage):
         else:
             if (avg_arm_angle > 160) & (nose[1] < avg_elbow_y):
                 stage = True
+                
+        print(count)
     return frame,count,stage
 
+def curlup(frame, results, count, stage):
+    print("curlup")
+    # imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    # results = pose.process(imgRGB)
+
+    if results.pose_landmarks:
+        # mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
+        shoulder_right = [results.pose_landmarks.landmark[RIGHT_SHOULDER].x, results.pose_landmarks.landmark[RIGHT_SHOULDER].y]
+        shoulder_left = [results.pose_landmarks.landmark[LEFT_SHOULDER].x, results.pose_landmarks.landmark[LEFT_SHOULDER].y]
+        hip_right = [results.pose_landmarks.landmark[RIGHT_HIP].x, results.pose_landmarks.landmark[RIGHT_HIP].y]
+        hip_left = [results.pose_landmarks.landmark[LEFT_HIP].x, results.pose_landmarks.landmark[LEFT_HIP].y]
+        knee_right = [results.pose_landmarks.landmark[RIGHT_KNEE].x, results.pose_landmarks.landmark[RIGHT_KNEE].y]
+        knee_left = [results.pose_landmarks.landmark[LEFT_KNEE].x, results.pose_landmarks.landmark[LEFT_KNEE].y]
+        ankel_right = [results.pose_landmarks.landmark[RIGHT_ANKLE].x, results.pose_landmarks.landmark[RIGHT_ANKLE].y]
+        ankel_left = [results.pose_landmarks.landmark[LEFT_ANKLE].x, results.pose_landmarks.landmark[LEFT_ANKLE].y]
+
+        angle_left = calculate_angle(shoulder_left, hip_left, knee_left)
+        angle_right = calculate_angle(shoulder_right, hip_right, knee_right)
         
+        angle_left_hipankle = calculate_angle(hip_left, knee_left, ankel_left)
+        angle_right_hipankle = calculate_angle(hip_right, knee_right, ankel_right)
+        # print(angle_left_hipankle, angle_right_hipankle)
+        
+        if (angle_left_hipankle > 40 or angle_right_hipankle > 40) and (angle_left_hipankle < 80 or angle_right_hipankle < 80):
+            if (angle_left > 110 or angle_right > 110) :
+                    stage = "Down"
+            if ((angle_left < 50 and stage == "Down") or (angle_right < 50 and stage == "Down")):
+                count += 1
+                stage = "Up"  
+                
+            # print(count)
+            cv2.putText(frame, f'Sit-ups: {count}', (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 3, cv2.LINE_AA)
+
+    return frame, count, stage
+
+
 
 
 

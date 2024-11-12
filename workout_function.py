@@ -2,8 +2,8 @@ import cv2
 from tkinter import filedialog, messagebox
 import tkinter as tk
 from PIL import Image, ImageTk
-from pushup import pushUp
-from curlUp import curlUp
+from pushup import pushUp, curlUp
+# from curlUp import curlUp
 from jumpingJack import jumpingJack
 import cv2
 import mediapipe as mp
@@ -51,19 +51,27 @@ pose = mpPose.Pose()
 def update_frame_workout(self, canvas, exerciseType):
     if self.cap:
         ret, frame = self.cap.read()
+        imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = pose.process(imgRGB)
+        mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
         if ret:
-            imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = pose.process(imgRGB)
-            mpDraw.draw_landmarks(frame, results.pose_landmarks, mpPose.POSE_CONNECTIONS)
-
+           
             if exerciseType == "Push Up":
+                print("1")
                 frame, self.count, self.stage = pushUp(frame, results, self.count, self.stage)
+
                 self.exercise_labels["PushUp"].config(text=self.count)
+                exerciseType = "Push Up"
+            
             elif exerciseType == "Curl Up":
+                print("2")
                 frame, self.count, self.stage = curlUp(frame, results, self.count, self.stage)
+
                 self.exercise_labels["CurlUp"].config(text=self.count)
+                exerciseType = "Curl Up"
+            
             elif exerciseType == "Jumping Jack":
-                frame, self.count, self.stage = jumpingJack(frame, results, self.count, self.stage)
+                frame, self.count, self.stage = jumpingJack(frame, self.count, self.stage)
                 self.exercise_labels["JumpingJack"].config(text=self.count)
 
             frame = cv2.resize(frame, (canvas.winfo_width(), canvas.winfo_height()))
