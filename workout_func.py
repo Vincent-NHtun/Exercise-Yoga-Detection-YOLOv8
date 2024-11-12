@@ -106,8 +106,9 @@ def update_frame_workout(self, canvas):
                 ankle_left = [results.pose_landmarks.landmark[LEFT_ANKLE].x, results.pose_landmarks.landmark[LEFT_ANKLE].y]
             #PushUp
                 self.nose = [results.pose_landmarks.landmark[NOSE].x, results.pose_landmarks.landmark[NOSE].y]
-                wrist_left = [results.pose_landmarks.landmark[LEFT_WRIST].x, results.pose_landmarks.landmark[LEFT_WRIST].y]
-                wrist_right = [results.pose_landmarks.landmark[RIGHT_WRIST].x, results.pose_landmarks.landmark[RIGHT_WRIST].y]
+                self.wrist_left = [results.pose_landmarks.landmark[LEFT_WRIST].x, results.pose_landmarks.landmark[LEFT_WRIST].y]
+                self.wrist_right = [results.pose_landmarks.landmark[RIGHT_WRIST].x, results.pose_landmarks.landmark[RIGHT_WRIST].y]
+                
             #JJ
                 shoulder_right = [results.pose_landmarks.landmark[RIGHT_SHOULDER].x, results.pose_landmarks.landmark[RIGHT_SHOULDER].y]
                 shoulder_left = [results.pose_landmarks.landmark[LEFT_SHOULDER].x, results.pose_landmarks.landmark[LEFT_SHOULDER].y]
@@ -124,12 +125,12 @@ def update_frame_workout(self, canvas):
                 angle_r_hipkneeankle = calculate_angle(hip_right, knee_right, ankle_right)
                 self.avg_angle_hipkneeankle = (angle_l_hipkneeankle + angle_r_hipkneeankle) / 2
             #PushUp
-                angle_l_shoulderelbowwrist = calculate_angle(shoulder_left, elbow_left, wrist_left)
-                angle_r_shoulderelbowwrist = calculate_angle(shoulder_right, elbow_right, wrist_right)
+                angle_l_shoulderelbowwrist = calculate_angle(shoulder_left, elbow_left, self.wrist_left)
+                angle_r_shoulderelbowwrist = calculate_angle(shoulder_right, elbow_right, self.wrist_right)
                 self.avg_angle_shoulderelbowwrist = (angle_l_shoulderelbowwrist + angle_r_shoulderelbowwrist) / 2
                 self.avg_elbow_y = (elbow_left[1] + elbow_right[1]) / 2
-                angle_l_wristshoulderknee = calculate_angle(wrist_left, shoulder_left, knee_left)
-                angle_r_wristshoulderknee = calculate_angle(wrist_right, shoulder_right, knee_right)
+                angle_l_wristshoulderknee = calculate_angle(self.wrist_left, shoulder_left, knee_left)
+                angle_r_wristshoulderknee = calculate_angle(self.wrist_right, shoulder_right, knee_right)
                 avg_angle_wristshoulderknee = (angle_l_wristshoulderknee + angle_r_wristshoulderknee) / 2
             #JJ
                 angle_l_hipshoulderelbow = calculate_angle(elbow_left, shoulder_left, hip_left)
@@ -171,7 +172,7 @@ def handle_pose_click(self, pose_name):
         print("Detection or video upload has not started yet.")
         return
     # Handle the pose click event
-    if self.recursive_call: # to break the recursion when the user clicks on another pose
+    if self.recursive_call and self.current_pose == pose_name: # to break the recursion when the user clicks on another pose
         
         print(f"Pose clicked: {pose_name}")
         
@@ -182,8 +183,8 @@ def handle_pose_click(self, pose_name):
             print(f"countCurlUp: {self.countCurlUp}")
             print(f"avg_angle_hipkneeankle: {self.avg_angle_hipkneeankle}")
             print(f"avg_angle_shoulderhipknee: {self.avg_angle_shoulderhipknee}")
-            if (self.avg_angle_hipkneeankle > 40) and (self.avg_angle_hipkneeankle < 80):
-                if (self.avg_angle_shoulderhipknee > 110) :
+            if (self.avg_angle_hipkneeankle > 30) and (self.avg_angle_hipkneeankle < 100):
+                if (self.avg_angle_shoulderhipknee > 100) :
                         self.stageCurlUp = "Down"
                 if ((self.avg_angle_shoulderhipknee < 50 and self.stageCurlUp == "Down")):
                     self.countCurlUp += 1
@@ -195,13 +196,13 @@ def handle_pose_click(self, pose_name):
             print(f"countPushUp: {self.countPushUp}")
             print(f"avg_angle_shoulderelbowwrist: {self.avg_angle_shoulderelbowwrist}")
             print(f"avg_elbow_y: {self.avg_elbow_y}")
-            if self.avg_angle_shoulderelbowwrist < 70 and self.nose[1] > self.avg_elbow_y: 
-                if self.stagePushUp == "Up":
-                    self.countPushUp += 1
-                    self.stagePushUP = "Down"
-                    self.exercise_labels["PushUp"].config(text=self.countPushUp)
+            if self.avg_angle_shoulderelbowwrist < 70 and self.nose[1] > self.avg_elbow_y : 
+                self.stagePushUp = "Down"
             if self.avg_angle_shoulderelbowwrist > 160 and self.nose[1] < self.avg_elbow_y:
-                self.stagePushUp = "Up"
+                if self.stagePushUp == "Down":
+                    self.countPushUp += 1
+                    self.stagePushUp = "Up"
+                    self.exercise_labels["PushUp"].config(text=self.countPushUp)
         #JJ
         if pose_name == "Jumping Jack":
             print(f"stageJJ: {self.stageJJ}")
@@ -210,7 +211,7 @@ def handle_pose_click(self, pose_name):
             print(f"avg_angle_shoulderhipknee: {self.avg_angle_shoulderhipknee}")
             if self.avg_angle_hipshoulderelbow < 90 and self.avg_angle_shoulderhipknee > 170:
                 self.stageJJ = "Down"
-            if self.avg_angle_hipshoulderelbow > 90 and self.avg_angle_shoulderhipknee < 170 :
+            if self.avg_angle_hipshoulderelbow > 90 and self.avg_angle_shoulderhipknee < 170 and (self.nose[1] > self.wrist_left[1] or self.nose[1] > self.wrist_right[1]):
                 if self.stageJJ == "Down":
                     self.countJJ += 1
                     self.exercise_labels["JumpingJack"].config(text=self.countJJ)
