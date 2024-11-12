@@ -29,6 +29,8 @@ class WorkoutTracker:
         self.nose = 0
         self.wrist_left= 0
         self.wrist_right = 0
+        self.mouth_left = 0
+        self.mouth_right = 0
         self.avg_angle_shoulderelbowwrist = 0
         self.avg_elbow_y = 0
         self.avg_angle_shoulderhipknee = 0

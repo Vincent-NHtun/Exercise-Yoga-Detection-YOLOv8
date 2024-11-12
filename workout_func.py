@@ -8,7 +8,8 @@ import mediapipe as mp
 
 # Landmark indices
 NOSE = 0
-
+LEFT_MOUTH = 9
+RIGHT_MOUTH = 10
 LEFT_SHOULDER = 11
 RIGHT_SHOULDER = 12
 
@@ -106,6 +107,8 @@ def update_frame_workout(self, canvas):
                 ankle_left = [results.pose_landmarks.landmark[LEFT_ANKLE].x, results.pose_landmarks.landmark[LEFT_ANKLE].y]
             #PushUp
                 self.nose = [results.pose_landmarks.landmark[NOSE].x, results.pose_landmarks.landmark[NOSE].y]
+                self.mouth_left = [results.pose_landmarks.landmark[LEFT_MOUTH].x, results.pose_landmarks.landmark[LEFT_MOUTH].y]
+                self.mouth_right = [results.pose_landmarks.landmark[RIGHT_MOUTH].x, results.pose_landmarks.landmark[RIGHT_MOUTH].y]
                 self.wrist_left = [results.pose_landmarks.landmark[LEFT_WRIST].x, results.pose_landmarks.landmark[LEFT_WRIST].y]
                 self.wrist_right = [results.pose_landmarks.landmark[RIGHT_WRIST].x, results.pose_landmarks.landmark[RIGHT_WRIST].y]
                 
@@ -206,9 +209,9 @@ def handle_pose_click(self, pose_name):
             print(f"countPushUp: {self.countPushUp}")
             print(f"avg_angle_shoulderelbowwrist: {self.avg_angle_shoulderelbowwrist}")
             print(f"avg_elbow_y: {self.avg_elbow_y}")
-            if self.avg_angle_shoulderelbowwrist < 70 and self.nose[1] > self.avg_elbow_y : 
+            if self.avg_angle_shoulderelbowwrist < 70 and ( self.nose[1] > self.avg_elbow_y or self.nose[1] > self.mouthleft[1] or self.nose[1] > self.mouthright[1]): 
                 self.stagePushUp = "Down"
-            if self.avg_angle_shoulderelbowwrist > 160 and self.nose[1] < self.avg_elbow_y:
+            if self.avg_angle_shoulderelbowwrist > 160 and ( self.nose[1] < self.avg_elbow_y or self.nose[1] < self.mouthleft[1] or self.nose[1] < self.mouthright[1]):
                 if self.stagePushUp == "Down":
                     self.countPushUp += 1
                     self.stagePushUp = "Up"
