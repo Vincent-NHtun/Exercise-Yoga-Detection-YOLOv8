@@ -19,6 +19,7 @@ class WorkoutTracker:
         self.stageJJ = ""
         self.stagePushUp = ""
         self.stageCurlUp = ""
+        self.stageSquat = ""
         
         self.countPushUp = 0
         self.countJJ = 0

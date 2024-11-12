@@ -129,9 +129,6 @@ def update_frame_workout(self, canvas):
                 angle_r_shoulderelbowwrist = calculate_angle(shoulder_right, elbow_right, self.wrist_right)
                 self.avg_angle_shoulderelbowwrist = (angle_l_shoulderelbowwrist + angle_r_shoulderelbowwrist) / 2
                 self.avg_elbow_y = (elbow_left[1] + elbow_right[1]) / 2
-                angle_l_wristshoulderknee = calculate_angle(self.wrist_left, shoulder_left, knee_left)
-                angle_r_wristshoulderknee = calculate_angle(self.wrist_right, shoulder_right, knee_right)
-                avg_angle_wristshoulderknee = (angle_l_wristshoulderknee + angle_r_wristshoulderknee) / 2
             #JJ
                 angle_l_hipshoulderelbow = calculate_angle(elbow_left, shoulder_left, hip_left)
                 angle_r_hipshoulderelbow = calculate_angle(elbow_right, shoulder_right, hip_right)
@@ -176,7 +173,20 @@ def handle_pose_click(self, pose_name):
         
         print(f"Pose clicked: {pose_name}")
         
-        #CurlUp
+        #Squat
+        if pose_name == "Squat":
+            print(f"countSquat: {self.countSquat}")
+            print(f"stageSquat: {self.stageSquat}")
+            print(f"avg_angle_hipkneeankle: {self.avg_angle_hipkneeankle}")
+            if self.avg_angle_hipkneeankle > 150:
+                if self.stageSquat != "Up":
+                    self.stageSquat = "Up"
+            if (self.avg_angle_hipkneeankle < 150 and self.avg_angle_hipkneeankle > 45):
+                if self.stageSquat == "Up":
+                    self.countSquat += 1
+                    self.exercise_labels["Squat"].config(text=self.countSquat)
+                    self.stageSquat = "Down"
+                    
         #CurlUp
         if pose_name == "Curl Up":
             print(f"stageCurlUp: {self.stageCurlUp}")
