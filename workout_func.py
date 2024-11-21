@@ -171,7 +171,7 @@ def handle_pose_click(self, pose_name):
     # Handle the pose click event
     if self.recursive_call and self.current_pose == pose_name: # to break the recursion when the user clicks on another pose
         
-        print(f"Pose clicked: {pose_name}")
+        # print(f"Pose clicked: {pose_name}")
         
         #Squat
         if pose_name == "Squat":
@@ -206,9 +206,9 @@ def handle_pose_click(self, pose_name):
             # print(f"countPushUp: {self.countPushUp}")
             # print(f"avg_angle_shoulderelbowwrist: {self.avg_angle_shoulderelbowwrist}")
             # print(f"avg_elbow_y: {self.avg_elbow_y}")
-            if self.avg_angle_shoulderelbowwrist < 70 and ( self.nose[1] > self.avg_elbow_y or self.nose[1] > self.mouth_left[1] or self.nose[1] > self.mouth_left[1]): 
+            if self.avg_angle_shoulderelbowwrist < 70 and ( self.nose[1] > self.avg_elbow_y ): 
                 self.stagePushUp = "Down"
-            if self.avg_angle_shoulderelbowwrist > 160 and ( self.nose[1] < self.avg_elbow_y or self.nose[1] < self.mouth_right[1] or self.nose[1] < self.mouth_right[1]):
+            if self.avg_angle_shoulderelbowwrist > 160 and ( self.nose[1] < self.avg_elbow_y ):
                 if self.stagePushUp == "Down":
                     self.countPushUp += 1
                     self.stagePushUp = "Up"

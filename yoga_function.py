@@ -54,13 +54,13 @@ def update_frame_yoga(self, canvas):
             annotated_frame = self.process_pose_detection(frame, canvas)
                 
             # Process animal detection and update label if animals are detected
-            animals_detected = self.process_animal_detection(frame, annotated_frame)
+            # animals_detected = self.process_animal_detection(frame, annotated_frame)
 
-            if animals_detected:
-                self.animal_status_label.config(text="  Animal Detected !!!", font=("Helvetica", 16, "bold"), fg="red")
-                self.animal_status_label.grid()  # Show the label
-            else:
-                self.animal_status_label.grid_remove()                
+            # if animals_detected:
+            #     self.animal_status_label.config(text="  Animal Detected !!!", font=("Helvetica", 16, "bold"), fg="red")
+            #     self.animal_status_label.grid()  # Show the label
+            # else:
+            #     self.animal_status_label.grid_remove()                
                 
 
             # Update GUI with processed frame
@@ -108,7 +108,7 @@ def process_pose_detection(self, frame, canvas):
                         detected_poses.append(pose_name)  # Store the detected pose
                         
                         confidence = result.boxes.conf[i]
-                        if(confidence > 0.8):
+                        if(confidence > 0.88):
                             self.start_pose_timer(pose_name)  # Start the timer for the detected pose
 
     # Stop timers for poses that are no longer detected
